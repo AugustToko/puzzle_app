@@ -21,12 +21,20 @@ if (flutterVersionName == null) {
     flutterVersionName = '1.0'
 }
 
+def localKeyProperties = new Properties()
+def localKeyPropertiesFile = rootProject.file('D:\\AndroidStudio_KEY_Store\\keystore.properties')
+if (localKeyPropertiesFile.exists()) {
+    localKeyPropertiesFile.withReader('UTF-8') { reader ->
+        localKeyProperties.load(reader)
+    }
+}
+
 apply plugin: 'com.android.application'
 apply plugin: 'kotlin-android'
 apply from: "$flutterRoot/packages/flutter_tools/gradle/flutter.gradle"
 
 android {
-    compileSdkVersion 29
+    compileSdkVersion 30
 
     sourceSets {
         main.java.srcDirs += 'src/main/kotlin'
@@ -40,16 +48,33 @@ android {
         // TODO: Specify your own unique Application ID (https://developer.android.com/studio/build/application-id.html).
         applicationId "top.geekcloud.puzzle_app"
         minSdkVersion 16
-        targetSdkVersion 29
+        targetSdkVersion 30
         versionCode flutterVersionCode.toInteger()
         versionName flutterVersionName
     }
 
+    signingConfigs {
+        release4GooglePlay {
+            storeFile file('D:\\AndroidStudio_KEY_Store\\as\\chenlongcould4googleplay.jks')
+            keyAlias localKeyProperties.getProperty('keyAlias')
+            storePassword localKeyProperties.getProperty('storePassword')
+            keyPassword localKeyProperties.getProperty('keyPassword')
+        }
+    }
+
     buildTypes {
         release {
-            // TODO: Add your own signing config for the release build.
-            // Signing with the debug keys for now, so `flutter run --release` works.
-            signingConfig signingConfigs.debug
+            signingConfig signingConfigs.release4GooglePlay
+            minifyEnabled true
+        }
+        debug {
+//            signingConfig signingConfigs.debug
+            signingConfig signingConfigs.release4GooglePlay
+
+        }
+        profile {
+//            signingConfig signingConfigs.debug
+            signingConfig signingConfigs.release4GooglePlay
         }
     }
 }
