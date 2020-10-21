@@ -5,6 +5,7 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/widgets.dart';
 import 'package:image_picker/image_picker.dart';
+import 'package:path_provider/path_provider.dart';
 import 'package:screenshot/screenshot.dart';
 import 'package:share_extend/share_extend.dart';
 import 'package:tuple/tuple.dart';
@@ -220,9 +221,49 @@ class _MyHomePageState extends State<MyHomePage> {
               );
             },
           );
-          screenshotController.capture(pixelRatio: quality.toDouble()).then((image) {
+
+          screenshotController
+              .capture(pixelRatio: quality.toDouble())
+              .then((image) {
             Navigator.pop(context);
-            ShareExtend.share(image.path, 'image');
+            showDialog(
+              context: context,
+              builder: (context) {
+                return AlertDialog(
+                  title: Text('选择操作方式'),
+                  content: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      ListTile(
+                        title: Text('分享'),
+                        onTap: () {
+                          ShareExtend.share(image.path, 'image');
+                        },
+                      ),
+                      ListTile(
+                        title: Text('保存'),
+                        onTap: () async {
+                          final folder = await getExternalStorageDirectory();
+                          final target =
+                              File('${folder.path}/${DateTime.now()}.png');
+                          target.writeAsBytes(image.readAsBytesSync());
+                          showDialog(
+                            context: context,
+                            builder: (context) {
+                              return AlertDialog(
+                                title: Text('保存成功'),
+                                content: Text('保存至: ${target.path}'),
+                              );
+                            },
+                          );
+                        },
+                      ),
+                    ],
+                  ),
+                  actions: [],
+                );
+              },
+            );
           }).catchError((onError) {
             Navigator.pop(context);
             showDialog(
